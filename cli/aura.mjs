@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * Aura CLI â€” installe le kit dans un projet, sans build ni dÃ©pendance.
+ * Aura CLI — installe le kit dans un projet, sans build ni dépendance.
  *
  *   node cli/aura.mjs init --dir ./mon-app --stack vite --name "Mon App"
  *   node cli/aura.mjs add Button,Card,Sheet --dir ./mon-app
+ *   node cli/aura.mjs add auth --dir ./mon-app
  *   node cli/aura.mjs list
  *   node cli/aura.mjs theme 265 --name violet
  */
@@ -15,7 +16,7 @@ import { fileURLToPath } from "node:url"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const KIT = path.join(ROOT, "kit")
-const VERSION = "0.1.1"
+const VERSION = "0.2.0"
 
 const STACKS = new Set(["vite", "next", "astro", "nuxt", "html"])
 
@@ -58,7 +59,7 @@ function log(message) {
 }
 
 function fail(message) {
-  process.stderr.write(`\n  âœ– ${message}\n\n`)
+  process.stderr.write(`\n  ✖ ${message}\n\n`)
   process.exit(1)
 }
 
@@ -82,6 +83,24 @@ function auraDir(target, stack) {
     : path.join(target, "src", "aura")
 }
 
+async function installAuth(dest) {
+  const source = path.join(KIT, "auth")
+  if (!existsSync(source)) fail("Module auth introuvable dans le kit.")
+
+  await cp(source, path.join(dest, "auth"), { recursive: true, force: true })
+
+  log("  + auth/ (serveur, écrans React, css, tests)")
+  log("")
+  log("  Auth — à faire :")
+  log("    1. Générer AUTH_SECRET (32+ caractères) :")
+  log(
+    '       node -e "console.log(require(\'node:crypto\').randomBytes(32).toString(\'base64url\'))"',
+  )
+  log('    2. Importer "./aura/auth/auth.css" après aura.css')
+  log(`    3. Lire ${path.relative(process.cwd(), path.join(dest, "auth", "README.md"))}`)
+  log("")
+}
+
 async function init(flags) {
   const target = path.resolve(flags.dir ?? process.cwd())
   const stack = flags.stack ?? "vite"
@@ -91,7 +110,7 @@ async function init(flags) {
   const accent = flags.accent ?? "teal"
 
   if (!STACKS.has(stack)) {
-    fail(`Stack inconnue Â« ${stack} Â». Valeurs : ${[...STACKS].join(", ")}.`)
+    fail(`Stack inconnue « ${stack} ». Valeurs : ${[...STACKS].join(", ")}.`)
   }
   if (!existsSync(target)) {
     fail(`Le dossier cible n'existe pas : ${target}`)
@@ -100,7 +119,7 @@ async function init(flags) {
   const dest = auraDir(target, stack)
   if (existsSync(dest) && !force) {
     fail(
-      `${path.relative(target, dest)} existe dÃ©jÃ . Utilise --force pour remplacer, ou "add" pour un composant.`,
+      `${path.relative(target, dest)} existe déjà. Utilise --force pour remplacer, ou "add" pour un composant.`,
     )
   }
 
@@ -110,15 +129,16 @@ async function init(flags) {
   await copyFile(path.join(KIT, "aura.css"), path.join(dest, "aura.css"))
 
   // Composants React
-  const reactSource = path.join(KIT, "react")
-  const reactDest = path.join(dest, "react")
-  await cp(reactSource, reactDest, { recursive: true, force: true })
+  await cp(path.join(KIT, "react"), path.join(dest, "react"), {
+    recursive: true,
+    force: true,
+  })
 
-  // PWA (manifest, head, icÃ´nes)
+  // PWA (manifest, head, icônes)
   const pwaDest = path.join(dest, "pwa")
   await cp(path.join(KIT, "pwa"), pwaDest, { recursive: true, force: true })
 
-  // Manifest personnalisÃ© â€” inutile avec Vite (plugin PWA) ou Next (app/manifest.ts).
+  // Manifest personnalisé — inutile avec Vite (plugin PWA) ou Next (app/manifest.ts).
   if (stack === "html" || stack === "astro" || stack === "nuxt") {
     const manifestSource = path.join(pwaDest, "manifest.webmanifest")
     if (existsSync(manifestSource)) {
@@ -136,12 +156,17 @@ async function init(flags) {
     }
   }
 
+  if (flags.auth) {
+    await installAuth(dest)
+  }
+
   const usage = `# Aura dans ${name}
 
 ## 1. Importer le CSS
 
 \`\`\`ts
 import "./aura/aura.css"
+${flags.auth ? 'import "./aura/auth/auth.css"' : ""}
 \`\`\`
 
 ## 2. Envelopper l'application
@@ -155,7 +180,7 @@ export function Root() {
       <div className="aura-app">
         <div className="aura-frame">
           <AppBar title="${name}" />
-          <Screen>{/* Ã©crans */}</Screen>
+          <Screen>{/* écrans */}</Screen>
         </div>
       </div>
     </ThemeProvider>
@@ -165,44 +190,55 @@ export function Root() {
 
 ## 3. PWA
 
-- Manifest : voir \`src/aura/pwa/README.md\` (la config dÃ©pend de la stack).
-- IcÃ´nes : \`src/aura/pwa/icons/\` + \`npx @vite-pwa/assets-generator\`.
+- Manifest : voir \`src/aura/pwa/README.md\` (la config dépend de la stack).
+- Icônes : \`src/aura/pwa/icons/\` + \`npx @vite-pwa/assets-generator\`.
 - Config Vite : voir \`src/aura/pwa/vite-plugin-pwa.snippet.ts.txt\`.
 - Config Next : voir \`src/aura/pwa/next-manifest.ts.txt\`.
+${
+  flags.auth
+    ? `
+## 4. Authentification
 
-## RÃ¨gles
+- Écran prêt à l'emploi : \`AuthScreen\` (connexion, inscription, OTP, mot de passe oublié).
+- Serveur : \`src/aura/auth/server/\` (Express ou Web standard).
+- Variables : \`AUTH_SECRET\` obligatoire, \`AUTH_APP_NAME\` optionnel.
+- Détails : \`src/aura/auth/README.md\`.
+`
+    : ""
+}
+## Règles
 
-1. Jamais de couleur en dur dans un Ã©cran : utiliser les tokens \`--aura-*\`.
-2. Une seule carte hÃ©ro par Ã©cran.
-3. Cibles tactiles â‰¥ 44 px, safe areas respectÃ©es.
-4. \`prefers-reduced-motion\` respectÃ© (dÃ©jÃ  gÃ©rÃ© par le CSS).
+1. Jamais de couleur en dur dans un écran : utiliser les tokens \`--aura-*\`.
+2. Une seule carte héro par écran.
+3. Cibles tactiles ≥ 44 px, safe areas respectées.
+4. \`prefers-reduced-motion\` respecté (déjà géré par le CSS).
 `;
 
   await writeFile(path.join(dest, "README.md"), usage, "utf8")
 
   log("")
-  log(`  Aura ${VERSION} installÃ© dans ${path.relative(process.cwd(), dest) || "."}`)
+  log(`  Aura ${VERSION} installé dans ${path.relative(process.cwd(), dest) || "."}`)
   log("")
   log("  Fichiers :")
   log(`    ${path.relative(target, path.join(dest, "aura.css"))}`)
   log(`    ${path.relative(target, path.join(dest, "react", "index.ts"))}`)
   if (stack !== "vite" && stack !== "next") {
-    log(`    public/manifest.webmanifest`)
+    log("    public/manifest.webmanifest")
   }
   log("")
-  log("  Ã€ faire :")
+  log("  À faire :")
   if (stack === "next") {
-    log(`    1. app/layout.tsx  â†’  import "./aura/aura.css"`)
-    log(`    2. Copier src/aura/pwa/next-manifest.ts.txt vers app/manifest.ts`)
-    log(`    3. Lire src/aura/README.md`)
+    log('    1. app/layout.tsx  →  import "./aura/aura.css"')
+    log("    2. Copier src/aura/pwa/next-manifest.ts.txt vers app/manifest.ts")
+    log("    3. Lire src/aura/README.md")
   } else if (stack === "html") {
-    log(`    1. <link rel="stylesheet" href="/aura/aura.css">`)
+    log('    1. <link rel="stylesheet" href="/aura/aura.css">')
     log(`    2. <html data-theme="light" data-accent="${accent}">`)
-    log(`    3. Lire aura/README.md`)
+    log("    3. Lire aura/README.md")
   } else {
-    log(`    1. src/main.tsx (ou App)  â†’  import "./aura/aura.css"`)
-    log(`    2. Envelopper dans <ThemeProvider>`)
-    log(`    3. Lire src/aura/README.md`)
+    log('    1. src/main.tsx (ou App)  →  import "./aura/aura.css"')
+    log("    2. Envelopper dans <ThemeProvider>")
+    log("    3. Lire src/aura/README.md")
   }
   log("")
 }
@@ -217,15 +253,24 @@ async function add(flags) {
     .filter(Boolean)
 
   if (names.length === 0) fail("Indique au moins un composant : aura add Button,Card")
-
   if (!existsSync(dest)) {
-    fail(`Aura n'est pas installÃ© dans ${target}. Lance d'abord "init".`)
+    fail(`Aura n'est pas installé dans ${target}. Lance d'abord "init".`)
   }
 
-  await copyFile(path.join(KIT, "react", "cn.ts"), path.join(dest, "react", "cn.ts"))
-  await copyFile(path.join(KIT, "react", "icons.tsx"), path.join(dest, "react", "icons.tsx"))
+  if (names.includes("auth")) {
+    await installAuth(dest)
+  }
 
-  for (const name of names) {
+  const components = names.filter((name) => name !== "auth")
+  if (components.length === 0) return
+
+  await copyFile(path.join(KIT, "react", "cn.ts"), path.join(dest, "react", "cn.ts"))
+  await copyFile(
+    path.join(KIT, "react", "icons.tsx"),
+    path.join(dest, "react", "icons.tsx"),
+  )
+
+  for (const name of components) {
     const file = `${name}.tsx`
     const source = path.join(KIT, "react", file)
     if (!existsSync(source)) fail(`Composant inconnu : ${name}`)
@@ -243,14 +288,17 @@ async function list() {
   log("  Composants Aura :")
   log(`    ${files.join(", ")}`)
   log("")
+  log("  Modules :")
+  log("    auth  →  aura add auth")
+  log("")
 }
 
 async function theme(flags) {
   const hue = Number(flags._[0] ?? 230)
   const name = flags.name ?? `custom-${hue}`
-  if (!Number.isFinite(hue)) fail("La teinte doit Ãªtre un nombre (0-360).")
+  if (!Number.isFinite(hue)) fail("La teinte doit être un nombre (0-360).")
   log("")
-  log("  Ajoute ce bloc dans ton CSS, aprÃ¨s aura.css :")
+  log("  Ajoute ce bloc dans ton CSS, après aura.css :")
   log("")
   log(`  [data-accent="${name}"] {`)
   log(`    --aura-accent-h: ${hue};`)
@@ -263,16 +311,17 @@ async function theme(flags) {
 
 function help() {
   log(`
-  Aura ${VERSION} â€” design system mobile-first
+  Aura ${VERSION} — design system mobile-first
 
   Usage :
-    aura init   --dir <projet> [--stack vite|next|astro|nuxt|html] [--name "Mon App"] [--force]
+    aura init   --dir <projet> [--stack vite|next|astro|nuxt|html] [--name "Mon App"] [--auth] [--force]
     aura add    Button,Card,Sheet [--dir <projet>]
+    aura add    auth [--dir <projet>]
     aura list
     aura theme  265 [--name violet]
 
   Exemples :
-    node ${path.relative(process.cwd(), path.join(ROOT, "cli", "aura.mjs"))} init --dir . --stack vite
+    node ${path.relative(process.cwd(), path.join(ROOT, "cli", "aura.mjs"))} init --dir . --stack vite --auth
 `)
 }
 

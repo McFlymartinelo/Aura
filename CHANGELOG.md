@@ -1,5 +1,19 @@
 # Journal
 
+## 0.2.0 — 2026-11-01
+
+- Nouveau module `kit/auth/` (opt-in) : inscription, connexion, code OTP par
+  email, mot de passe oublié, session et profil.
+- Serveur **zéro dépendance** : scrypt natif, JWT HS256 maison, OTP HMAC,
+  `node:sqlite`, mailer pluggable (Resend fourni).
+- Adaptateurs **Express** et **Web standard** (Next, Hono, Bun, Workers).
+- Client React : `AuthProvider`, `useAuth`, `AuthScreen`, client HTTP typé,
+  mode cookie httpOnly ou bearer.
+- CLI : `aura add auth`, `aura init --auth`, `aura list` affiche les modules.
+- Sécurité : révocation des sessions par `token_version`, anti-énumération,
+  rate limit, mot de passe 8 caractères minimum, OTP hashé.
+- Corrige l'encodage UTF-8 du CLI (accents et flèches).
+
 ## 0.1.2 — 2026-11-01
 
 - `BottomTabs` reçoit `variant="capsule"` : une pastille pleine glisse sous

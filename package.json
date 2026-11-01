@@ -1,6 +1,6 @@
 {
   "name": "aura-design-system",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": true,
   "license": "MIT",
   "repository": {
@@ -14,9 +14,11 @@
   },
   "scripts": {
     "aura": "node cli/aura.mjs",
-    "list": "node cli/aura.mjs list"
+    "list": "node cli/aura.mjs list",
+    "test:auth": "node --test kit/auth/server/test/auth.test.mjs",
+    "auth:secret": "node -e \"console.log(require('node:crypto').randomBytes(32).toString('base64url'))\""
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.5"
   }
 }

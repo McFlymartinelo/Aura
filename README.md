@@ -67,7 +67,8 @@ Aura/
 ├── kit/
 │   ├── aura.css              # tokens + base + composants + utilitaires
 │   ├── react/                # 18 primitives accessibles
-│   └── pwa/                  # manifest, head, icônes, offline, snippets
+│   ├── pwa/                  # manifest, head, icônes, offline, snippets
+│   └── auth/                 # serveur zéro-dép + écrans React
 ├── skills/aura-mobile/       # skill OpenCode / Claude Code
 ├── DESIGN.md                 # règles de direction artistique
 └── README.md
@@ -138,6 +139,7 @@ node cli/aura.mjs theme 265 --name violet
 | `Stat`, `ListRow`, `Avatar` | données et listes |
 | `Skeleton`, `EmptyState` | chargement et vide |
 | `PwaInstallCard` | installation PWA |
+| `AuthScreen`, `AuthProvider`, `useAuth` | module auth (opt-in) : inscription, OTP, session |
 | `motion.ts` | presets Motion + View Transitions |
 | `pwa.ts` | install, online, app badge, service worker |
 
@@ -235,6 +237,39 @@ Détails : `kit/pwa/README.md`.
 
 ---
 
+## Authentification (module opt-in)
+
+`kit/auth/` fournit le parcours complet : inscription, connexion, code OTP par
+email, mot de passe oublié, session et profil.
+
+```bash
+node cli/aura.mjs add auth --dir <projet>
+# ou
+node cli/aura.mjs init --dir <projet> --stack vite --auth
+```
+
+- **Serveur** : zéro dépendance. `crypto.scrypt`, tokens HMAC, `node:sqlite`,
+  mailer pluggable (Resend fourni, ou ta propre fonction). Adaptateurs
+  **Express** et **Web standard** (Next, Hono, Bun, Workers).
+- **Écrans** : `AuthScreen` + `AuthProvider` + `useAuth`, dans le style Aura.
+- **Sécurité** : cookie `httpOnly` par défaut, révocation des sessions au
+  changement de mot de passe, OTP hashé, rate limit, anti-énumération.
+
+```tsx
+import "./aura/auth/auth.css"
+import { AuthProvider, AuthScreen, createHttpAuthClient } from "./aura/auth/react"
+
+const client = createHttpAuthClient({ baseUrl: "/api/auth" })
+
+<AuthProvider client={client}>
+  <AuthScreen appName="Mon App" />
+</AuthProvider>
+```
+
+Détails, contrat d'API et limites : `kit/auth/README.md`.
+
+---
+
 ## Motion
 
 - Courbes : `--aura-ease-out`, `--aura-ease-spring`.
@@ -267,6 +302,7 @@ Règle : **une** animation principale par écran. Le reste doit être silencieux
 - [ ] Aucune couleur hexadécimale dans les écrans.
 - [ ] Une seule carte héro, un seul accent.
 - [ ] `prefers-reduced-motion` vérifié.
+- [ ] Auth (si utilisée) : `AUTH_SECRET` fort, mailer réel, cookie `Secure`.
 - [ ] Lighthouse : PWA installable, contraste OK.
 - [ ] Build + typecheck + tests verts.
 

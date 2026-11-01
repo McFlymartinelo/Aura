@@ -4,7 +4,7 @@ description: Construire ou refondre une application web mobile / PWA avec le des
 license: MIT
 compatibility: opencode, claude-code
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
   framework: aura
 ---
 
@@ -86,7 +86,19 @@ Règles :
 - `PwaInstallCard` sur l'accueil, jamais en overlay bloquant.
 - Tester en mode avion après installation.
 
-### 7. Vérifier
+### 7. Auth (si l'app a des comptes)
+
+```bash
+node C:\Users\alex-\Workspace\Perso\Aura\cli\aura.mjs add auth --dir <projet>
+```
+
+- Écran prêt : `AuthScreen` (connexion, inscription, OTP, mot de passe oublié).
+- Serveur : `src/aura/auth/server/` — adaptateur Express ou Web (Next/Hono).
+- `AUTH_SECRET` obligatoire (32+), mailer réel en production, cookie httpOnly.
+- Ne jamais activer `echoOtp` ni `exposeToken` en production.
+- Lire `Aura/kit/auth/README.md` avant de personnaliser.
+
+### 8. Vérifier
 
 ```bash
 npm run build
@@ -110,6 +122,7 @@ Puis dans le navigateur :
 5. Ne pas utiliser plus de 2 polices.
 6. Ne pas livrer sans build vert.
 7. Si un composant manque, l'ajouter à `Aura/kit/react` **et** au projet.
+8. Auth : jamais de secret commité, jamais de code OTP loggé en production.
 
 ## Références
 
@@ -117,3 +130,4 @@ Puis dans le navigateur :
 - `Aura/DESIGN.md` — direction artistique, anti-patterns.
 - `Aura/kit/aura.css` — tokens et classes.
 - `Aura/kit/pwa/README.md` — check-list PWA.
+- `Aura/kit/auth/README.md` — auth, API et sécurité.

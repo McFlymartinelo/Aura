@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Drivly — styles de notification</title>
+    <style>
+      :root {
+        --bg: oklch(97.3% 0.006 235);
+        --canvas: oklch(91.5% 0.012 235);
+        --surface: oklch(99.5% 0.002 235);
+        --surface-2: oklch(95.3% 0.008 235);
+        --ink: oklch(20.5% 0.018 245);
+        --ink-2: oklch(42% 0.016 245);
+        --ink-3: oklch(52% 0.014 245);
+        --line: oklch(89.6% 0.008 240);
+        --accent: oklch(72% 0.145 195);
+        --accent-solid: oklch(54% 0.135 195);
+        --accent-soft: oklch(95.5% 0.035 195);
+        --on-accent: oklch(99% 0.005 195);
+        --warn: oklch(66% 0.16 62);
+        --danger: oklch(55% 0.19 25);
+        --font-sans: "Inter Tight", ui-sans-serif, system-ui, -apple-system,
+          "Segoe UI", sans-serif;
+        --font-display: "Bricolage Grotesque", "Inter Tight", ui-sans-serif,
+          system-ui, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        padding: 40px 24px 72px;
+        background:
+          radial-gradient(90% 50% at 50% -10%, oklch(72% 0.145 195 / 0.1), transparent 70%),
+          var(--canvas);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      header.page { max-width: 1080px; margin: 0 auto 32px; }
+      .eyebrow {
+        margin: 0 0 8px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      h1 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(26px, 4vw, 36px);
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+      }
+      .lede {
+        margin: 10px 0 0;
+        max-width: 64ch;
+        font-size: 14.5px;
+        line-height: 1.55;
+        color: var(--ink-2);
+        text-wrap: pretty;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+        gap: 20px;
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+
+      .card {
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        background: var(--surface);
+        box-shadow:
+          0 2px 6px oklch(22% 0.02 250 / 0.05),
+          0 18px 40px -24px oklch(22% 0.02 250 / 0.3);
+      }
+      .card[data-pick] {
+        border-color: oklch(72% 0.145 195 / 0.55);
+        box-shadow:
+          0 2px 6px oklch(22% 0.02 250 / 0.05),
+          0 18px 40px -24px oklch(54% 0.135 195 / 0.55);
+      }
+      .card h2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 2px;
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 680;
+        letter-spacing: -0.02em;
+      }
+      .tag {
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-solid);
+        font-family: var(--font-sans);
+        font-size: 9.5px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .tag.plain { background: var(--surface-2); color: var(--ink-3); }
+      .card .desc {
+        margin: 0 0 14px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--ink-3);
+        text-wrap: pretty;
+      }
+      .card ul {
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 5px;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--ink-2);
+      }
+      .card li { display: flex; gap: 7px; }
+      .card li::before {
+        content: "";
+        flex: none;
+        width: 5px;
+        height: 5px;
+        margin-top: 6px;
+        border-radius: 50%;
+        background: var(--accent-solid);
+        opacity: 0.55;
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* Écran d'app                                                      */
+      /* ---------------------------------------------------------------- */
+      .stage {
+        position: relative;
+        width: 100%;
+        max-width: 344px;
+        height: 252px;
+        margin: 0 auto;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--bg);
+      }
+
+      .appbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 34px;
+        padding: 0 12px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: var(--ink-2);
+      }
+      .appbar .chip {
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        font-size: 8.5px;
+        color: var(--ink-3);
+      }
+
+      .hero {
+        margin: 0 10px;
+        padding: 10px 12px 11px;
+        border-radius: 16px;
+        color: white;
+        background:
+          radial-gradient(120% 150% at 100% 0%, oklch(72% 0.145 195 / 0.6), transparent 58%),
+          linear-gradient(145deg, oklch(25% 0.03 250), oklch(15% 0.022 255));
+        box-shadow: 0 14px 30px -18px oklch(54% 0.135 195 / 0.55);
+      }
+      .hero p { margin: 0; }
+      .hero .k {
+        font-size: 7.5px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: oklch(100% 0 0 / 0.6);
+      }
+      .hero .v {
+        margin-top: 4px;
+        font-family: var(--font-display);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+      .hero .m {
+        margin-top: 4px;
+        font-size: 8.5px;
+        color: oklch(100% 0 0 / 0.66);
+      }
+
+      .rows {
+        display: grid;
+        gap: 6px;
+        margin: 10px 12px 0;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 9px;
+        border-radius: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+      }
+      .row .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent-solid);
+        opacity: 0.55;
+      }
+      .row .line {
+        height: 4px;
+        flex: 1;
+        border-radius: 999px;
+        background: var(--surface-2);
+      }
+      .row .amt {
+        font-size: 8px;
+        font-weight: 700;
+        color: var(--ink-3);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .tabbar {
+        position: absolute;
+        inset: auto 8px 7px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 34px;
+        padding: 0 9px;
+        border-radius: 999px;
+        border: 1px solid oklch(100% 0 0 / 0.7);
+        background: color-mix(in oklab, var(--bg) 76%, transparent);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 12px 26px -18px oklch(54% 0.135 195 / 0.5);
+      }
+      .tabbar span {
+        width: 13px;
+        height: 13px;
+        border-radius: 4px;
+        background: var(--surface-2);
+      }
+      .tabbar span:first-child { background: var(--accent-soft); }
+
+      /* ---------------------------------------------------------------- */
+      /* A · Instrument — rail d'accent, pas d'icône                      */
+      /* ---------------------------------------------------------------- */
+      .notifA {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 49px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 52px;
+        padding: 8px 8px 8px 0;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: var(--surface);
+        box-shadow:
+          0 2px 6px oklch(22% 0.02 250 / 0.06),
+          0 16px 30px -20px oklch(22% 0.02 250 / 0.5);
+        overflow: hidden;
+      }
+      .notifA .rail {
+        align-self: stretch;
+        width: 3px;
+        margin-left: 0;
+        border-radius: 0 999px 999px 0;
+        background: var(--accent-solid);
+      }
+      .notifA .txt { min-width: 0; flex: 1; }
+      .notifA .k {
+        margin: 0;
+        font-size: 7.5px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent-solid);
+      }
+      .notifA .m {
+        margin: 2px 0 0;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.25;
+        color: var(--ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .notifA .act {
+        flex: none;
+        padding: 4px 6px;
+        border: 0;
+        background: none;
+        color: var(--accent-solid);
+        font: inherit;
+        font-size: 9.5px;
+        font-weight: 800;
+      }
+      .notifA .x {
+        flex: none;
+        width: 18px;
+        height: 18px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--surface-2);
+        color: var(--ink-3);
+        font-size: 11px;
+        line-height: 1;
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* B · Carte — icône, deux lignes, progression                      */
+      /* ---------------------------------------------------------------- */
+      .notifB {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 47px;
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        padding: 10px 9px 12px;
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        background: var(--surface);
+        box-shadow:
+          0 2px 6px oklch(22% 0.02 250 / 0.06),
+          0 20px 36px -22px oklch(22% 0.02 250 / 0.55);
+      }
+      .notifB .ico {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        flex: none;
+        place-items: center;
+        border-radius: 10px;
+        background: var(--accent-soft);
+        color: var(--accent-solid);
+      }
+      .notifB .ico svg { width: 16px; height: 16px; }
+      .notifB .txt { min-width: 0; flex: 1; }
+      .notifB .t {
+        margin: 0;
+        font-size: 11.5px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--ink);
+      }
+      .notifB .m {
+        margin: 3px 0 0;
+        font-size: 9.5px;
+        line-height: 1.3;
+        color: var(--ink-3);
+      }
+      .notifB .act {
+        flex: none;
+        align-self: center;
+        padding: 4px 7px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-solid);
+        font: inherit;
+        font-size: 9px;
+        font-weight: 800;
+      }
+      .notifB .x {
+        position: absolute;
+        top: 7px;
+        right: 7px;
+        width: 16px;
+        height: 16px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--surface-2);
+        color: var(--ink-3);
+        font-size: 10px;
+        line-height: 1;
+      }
+      .notifB .progress {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 5px;
+        height: 2px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        overflow: hidden;
+      }
+      .notifB .progress::after {
+        content: "";
+        display: block;
+        width: 62%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--accent-solid);
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* C · Bandeau — pleine largeur, en haut                            */
+      /* ---------------------------------------------------------------- */
+      .notifC {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 9px 12px 11px;
+        border-bottom: 1px solid oklch(100% 0 0 / 0.6);
+        border-radius: 0 0 16px 16px;
+        background: color-mix(in oklab, var(--surface) 86%, transparent);
+        -webkit-backdrop-filter: blur(18px) saturate(1.4);
+        backdrop-filter: blur(18px) saturate(1.4);
+        box-shadow: 0 14px 28px -22px oklch(22% 0.02 250 / 0.6);
+      }
+      .notifC .head {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 8px;
+        color: var(--ink-3);
+      }
+      .notifC .appico {
+        display: grid;
+        width: 16px;
+        height: 16px;
+        place-items: center;
+        border-radius: 5px;
+        background: var(--accent-solid);
+        color: var(--on-accent);
+        font-size: 8px;
+        font-weight: 800;
+      }
+      .notifC .appname {
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      .notifC .when { margin-left: auto; }
+      .notifC .t {
+        margin: 5px 0 0;
+        font-size: 11.5px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+      .notifC .m {
+        margin: 2px 0 0;
+        font-size: 9.5px;
+        color: var(--ink-3);
+      }
+      .notifC .grab {
+        width: 32px;
+        height: 3px;
+        margin: 0 auto 6px;
+        border-radius: 999px;
+        background: var(--line);
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* Aperçus push (rendu système)                                     */
+      /* ---------------------------------------------------------------- */
+      .pushrow {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .lock {
+        position: relative;
+        height: 196px;
+        padding: 16px 10px 10px;
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+      }
+      .lock.android {
+        background:
+          radial-gradient(120% 80% at 50% 0%, oklch(30% 0.03 250 / 0.9), transparent 70%),
+          oklch(15% 0.02 255);
+        border-color: oklch(30% 0.02 255);
+        color: oklch(96% 0.005 250);
+      }
+      .lock.ios {
+        background:
+          radial-gradient(120% 80% at 50% 0%, oklch(86% 0.03 195 / 0.5), transparent 70%),
+          oklch(94% 0.008 235);
+        border-color: oklch(86% 0.01 235);
+        color: oklch(22% 0.02 245);
+      }
+      .lock .clock {
+        margin: 0;
+        text-align: center;
+        font-family: var(--font-display);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums;
+      }
+      .lock .date {
+        margin: 1px 0 12px;
+        text-align: center;
+        font-size: 7.5px;
+        opacity: 0.55;
+      }
+      .push {
+        padding: 8px;
+        border-radius: 12px;
+      }
+      .android .push {
+        background: oklch(25% 0.02 255 / 0.92);
+        border: 1px solid oklch(100% 0 0 / 0.08);
+      }
+      .ios .push {
+        background: oklch(100% 0 0 / 0.72);
+        border: 1px solid oklch(100% 0 0 / 0.8);
+        box-shadow: 0 8px 18px -14px oklch(22% 0.02 250 / 0.6);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+      }
+      .push-head {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 7px;
+        opacity: 0.75;
+      }
+      .pico {
+        display: grid;
+        width: 14px;
+        height: 14px;
+        place-items: center;
+        border-radius: 4px;
+        background: var(--accent-solid);
+        color: var(--on-accent);
+        font-size: 7px;
+        font-weight: 800;
+      }
+      .pico.mono {
+        background: oklch(100% 0 0 / 0.9);
+        color: oklch(18% 0.02 250);
+      }
+      .push-head .app {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .push-head .when { margin-left: auto; opacity: 0.8; }
+      .push .pt {
+        margin: 5px 0 0;
+        font-size: 9.5px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .push .pm {
+        margin: 2px 0 0;
+        font-size: 8px;
+        line-height: 1.3;
+        opacity: 0.7;
+      }
+      .actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .actions span {
+        padding: 3px 7px;
+        border-radius: 999px;
+        font-size: 7.5px;
+        font-weight: 700;
+        background: oklch(100% 0 0 / 0.1);
+        color: var(--accent);
+      }
+      .ios .actions span {
+        background: oklch(54% 0.135 195 / 0.1);
+        color: var(--accent-solid);
+      }
+      .lock .label {
+        position: absolute;
+        right: 9px;
+        bottom: 7px;
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.4;
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* Réglages                                                         */
+      /* ---------------------------------------------------------------- */
+      .config {
+        max-width: 1080px;
+        margin: 20px auto 0;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        background: var(--surface);
+        box-shadow:
+          0 2px 6px oklch(22% 0.02 250 / 0.05),
+          0 18px 40px -24px oklch(22% 0.02 250 / 0.3);
+      }
+      .config h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 680;
+        letter-spacing: -0.02em;
+      }
+      .config .sub {
+        margin: 4px 0 16px;
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .seg {
+        display: inline-flex;
+        gap: 3px;
+        padding: 3px;
+        border-radius: 999px;
+        background: var(--surface-2);
+      }
+      .seg span {
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 10.5px;
+        font-weight: 650;
+        color: var(--ink-3);
+      }
+      .seg span.on {
+        background: var(--surface);
+        color: var(--ink);
+        box-shadow: 0 1px 3px oklch(22% 0.02 250 / 0.12);
+      }
+      .toggles {
+        display: grid;
+        gap: 6px;
+      }
+      .toggles div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        font-size: 11px;
+      }
+      .sw {
+        position: relative;
+        width: 26px;
+        height: 15px;
+        border-radius: 999px;
+        background: var(--accent-solid);
+      }
+      .sw::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: white;
+      }
+      .sw.off { background: var(--line); }
+      .sw.off::after { right: auto; left: 2px; }
+
+      .note {
+        margin: 14px 0 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--surface-2);
+        font-size: 11.5px;
+        line-height: 1.5;
+        color: var(--ink-2);
+      }
+      .note strong { color: var(--ink); }
+
+      footer.page {
+        max-width: 1080px;
+        margin: 30px auto 0;
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--ink-3);
+      }
+      footer.page strong { color: var(--ink-2); font-weight: 650; }
+      code {
+        padding: 1px 5px;
+        border-radius: 5px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        font-size: 11.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page">
+      <p class="eyebrow">Drivly · notifications</p>
+      <h1>Trois styles, une seule logique</h1>
+      <p class="lede">
+        Même événement (« contrôle technique dans 3 jours »), trois niveaux de
+        présence. Le style choisi pilote à la fois la notification dans l'app et
+        le contenu du push système. Sur Android et iPhone, le rendu final reste
+        celui du système : on contrôle l'icône, le texte, les actions et le
+        regroupement, pas la mise en page.
+      </p>
+    </header>
+
+    <div class="grid">
+      <!-- A -->
+      <article class="card" data-pick>
+        <h2>A · Instrument <span class="tag">Recommandé</span></h2>
+        <p class="desc">
+          Un rail d'accent, pas d'icône, deux lignes maximum. La notification
+          ressemble à une ligne de journal : présente, jamais bruyante.
+        </p>
+
+        <div class="stage">
+          <div class="appbar">
+            <span>Historique</span><span class="chip">Citroën C4</span>
+          </div>
+          <div class="hero">
+            <p class="k">Novembre 2025</p>
+            <p class="v">98,17 €</p>
+            <p class="m">1 080 km · 5,43 L/100 km</p>
+          </div>
+          <div class="rows">
+            <div class="row"><span class="dot"></span><span class="line"></span><span class="amt">72,00 €</span></div>
+            <div class="row"><span class="dot"></span><span class="line"></span><span class="amt">26,17 €</span></div>
+          </div>
+          <div class="tabbar"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="notifA">
+            <span class="rail"></span>
+            <div class="txt">
+              <p class="k">Rappel · Citroën C4</p>
+              <p class="m">Contrôle technique dans 3 jours</p>
+            </div>
+            <button class="act" type="button">Voir</button>
+            <button class="x" type="button" aria-label="Fermer">×</button>
+          </div>
+        </div>
+
+        <div class="pushrow">
+          <div class="lock android">
+            <p class="clock">09:41</p>
+            <p class="date">lundi 3 novembre</p>
+            <div class="push">
+              <div class="push-head">
+                <span class="pico mono">D</span>
+                <span class="app">Drivly</span>
+                <span class="when">maintenant</span>
+              </div>
+              <p class="pt">Contrôle technique</p>
+              <p class="pm">Dans 3 jours · Citroën C4</p>
+              <div class="actions"><span>Voir</span></div>
+            </div>
+            <span class="label">Android</span>
+          </div>
+          <div class="lock ios">
+            <p class="clock">09:41</p>
+            <p class="date">lundi 3 novembre</p>
+            <div class="push">
+              <div class="push-head">
+                <span class="pico">D</span>
+                <span class="app">DRIVLY</span>
+                <span class="when">maintenant</span>
+              </div>
+              <p class="pt">Contrôle technique dans 3 jours</p>
+              <p class="pm">Citroën C4 · 177 675 km</p>
+            </div>
+            <span class="label">iPhone</span>
+          </div>
+        </div>
+
+        <ul>
+          <li>Cohérent avec la direction « Precision » de Drivly.</li>
+          <li>Un seul effet : le rail. Pas d'icône, pas de dégradé.</li>
+          <li>Compact : laisse voir le contenu derrière.</li>
+        </ul>
+      </article>
+
+      <!-- B -->
+      <article class="card">
+        <h2>B · Carte <span class="tag plain">Matérielle</span></h2>
+        <p class="desc">
+          Une carte surélevée avec icône, titre, détail et barre de progression.
+          Plus visible, plus proche des conventions Android.
+        </p>
+
+        <div class="stage">
+          <div class="appbar">
+            <span>Historique</span><span class="chip">Citroën C4</span>
+          </div>
+          <div class="hero">
+            <p class="k">Novembre 2025</p>
+            <p class="v">98,17 €</p>
+            <p class="m">1 080 km · 5,43 L/100 km</p>
+          </div>
+          <div class="rows">
+            <div class="row"><span class="dot"></span><span class="line"></span><span class="amt">72,00 €</span></div>
+            <div class="row"><span class="dot"></span><span class="line"></span><span class="amt">26,17 €</span></div>
+          </div>
+          <div class="tabbar"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="notifB">
+            <span class="ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.3 2.3-2.4-.6-.6-2.4z"/></svg>
+            </span>
+            <div class="txt">
+              <p class="t">Contrôle technique</p>
+              <p class="m">Dans 3 jours · Citroën C4</p>
+            </div>
+            <button class="act" type="button">Voir</button>
+            <button class="x" type="button" aria-label="Fermer">×</button>
+            <span class="progress"></span>
+          </div>
+        </div>
+
+        <div class="pushrow">
+          <div class="lock android">
+            <p class="clock">09:41</p>
+            <p class="date">lundi 3 novembre</p>
+            <div class="push">
+              <div class="push-head">
+                <span class="pico">D</span>
+                <span class="app">Drivly</span>
+                <span class="when">maintenant</span>
+              </div>
+              <p class="pt">Contrôle technique</p>
+              <p class="pm">Dans 3 jours · Citroën C4</p>
+              <div class="actions"><span>Voir</span><span>Plus tard</span></div>
+            </div>
+            <span class="label">Android</span>
+          </div>
+          <div class="lock ios">
+            <p class="clock">09:41</p>
+            <p class="date">lundi 3 novembre</p>
+            <div class="push">
+              <div class="push-head">
+                <span class="pico">D</span>
+                <span class="app">DRIVLY</span>
+                <span class="when">maintenant</span>
+              </div>
+              <p class="pt">Contrôle technique dans 3 jours</p>
+              <p class="pm">Citroën C4 · 177 675 km</p>
+            </div>
+            <span class="label">iPhone</span>
+          </div>
+        </div>
+
+        <ul>
+          <li>La plus lisible, surtout sur écran verrouillé.</li>
+          <li>Deux actions possibles sur Android (« Voir », « Plus tard »).</li>
+          <li>Prend plus de place et masque davantage le contenu.</li>
+        </ul>
+      </article>
+
+      <!-- C -->
+      <article class="card">
+        <h2>C · Bandeau <span class="tag plain">iOS</span></h2>
+        <p class="desc">
+          Bandeau pleine largeur en haut, translucide, avec l'icône de l'app.
+          La convention iOS, sans bouton d'action.
+        </p>
+
+        <div class="stage">
+          <div class="appbar">
+            <span>Historique</span><span class="chip">Citroën C4</span>
+          </div>
+          <div class="hero">
+            <p class="k">Novembre 2025</p>
+            <p class="v">98,17 €</p>
+            <p class="m">1 080 km · 5,43 L/100 km</p>
+          </div>
+          <div class="rows">
+            <div class="row"><span class="dot"></span><span class="line"></span><span class="amt">72,00 €</span></div>
+            <div class="row"><span class="dot"></span><span class="line"></span><span class="amt">26,17 €</span></div>
+          </div>
+          <div class="tabbar"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="notifC">
+            <span class="grab"></span>
+            <div class="head">
+              <span class="appico">D</span>
+              <span class="appname">Drivly</span>
+              <span class="when">maintenant</span>
+            </div>
+            <p class="t">Contrôle technique dans 3 jours</p>
+            <p class="m">Citroën C4 · 177 675 km</p>
+          </div>
+        </div>
+
+        <div class="pushrow">
+          <div class="lock android">
+            <p class="clock">09:41</p>
+            <p class="date">lundi 3 novembre</p>
+            <div class="push">
+              <div class="push-head">
+                <span class="pico">D</span>
+                <span class="app">Drivly</span>
+                <span class="when">maintenant</span>
+              </div>
+              <p class="pt">Contrôle technique dans 3 jours</p>
+              <p class="pm">Citroën C4 · 177 675 km</p>
+            </div>
+            <span class="label">Android</span>
+          </div>
+          <div class="lock ios">
+            <p class="clock">09:41</p>
+            <p class="date">lundi 3 novembre</p>
+            <div class="push">
+              <div class="push-head">
+                <span class="pico">D</span>
+                <span class="app">DRIVLY</span>
+                <span class="when">maintenant</span>
+              </div>
+              <p class="pt">Contrôle technique dans 3 jours</p>
+              <p class="pm">Citroën C4 · 177 675 km</p>
+            </div>
+            <span class="label">iPhone</span>
+          </div>
+        </div>
+
+        <ul>
+          <li>Très proche des notifications iOS natives.</li>
+          <li>Le plus visible : il occupe toute la largeur en haut.</li>
+          <li>Pas d'action directe : un tap ouvre l'écran Rappels.</li>
+        </ul>
+      </article>
+    </div>
+
+    <section class="config">
+      <h2>Ce qui sera paramétrable dans Aura</h2>
+      <p class="sub">
+        Un seul attribut sur le conteneur, et les tokens d'accent existants :
+      </p>
+      <div class="config-grid">
+        <div class="field">
+          <label>Style</label>
+          <div class="seg">
+            <span class="on">Instrument</span><span>Carte</span><span>Bandeau</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Position</label>
+          <div class="seg">
+            <span class="on">Bas</span><span>Haut</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Durée</label>
+          <div class="seg">
+            <span>4 s</span><span class="on">6 s</span><span>Persistant</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Canaux</label>
+          <div class="toggles">
+            <div><span>Rappels d'entretien</span><span class="sw"></span></div>
+            <div><span>Résumé mensuel</span><span class="sw off"></span></div>
+            <div><span>Échec de sauvegarde</span><span class="sw"></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note">
+        <strong>Côté push, le système garde la main.</strong> On paramètre
+        l'icône (monochrome ou couleur), le titre, le corps, les actions
+        Android, le <code>tag</code> de regroupement et le son. Sur iPhone, il
+        faut d'abord installer la PWA (iOS 16.4+) : Safari ne reçoit pas de push
+        dans un onglet.
+      </p>
+    </section>
+
+    <footer class="page">
+      <p>
+        <strong>Dans les trois cas</strong> : priorité aux rappels utiles
+        (échéance proche, sauvegarde échouée), pas de notification pour une
+        action que l'utilisateur vient de faire. Un clic ouvre l'écran concerné
+        (<code>/rappels?reminder=…</code>). Les notifications sont regroupées
+        par véhicule via le <code>tag</code>.
+      </p>
+    </footer>
+  </body>
+</html>

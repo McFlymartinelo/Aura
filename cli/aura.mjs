@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const KIT = path.join(ROOT, "kit")
-const VERSION = "0.2.1"
+const VERSION = "0.3.0"
 
 const STACKS = new Set(["vite", "next", "astro", "nuxt", "html"])
 
@@ -101,6 +101,22 @@ async function installAuth(dest) {
   log("")
 }
 
+async function installNotify(dest) {
+  const source = path.join(KIT, "notify")
+  if (!existsSync(source)) fail("Module notify introuvable dans le kit.")
+
+  await cp(source, path.join(dest, "notify"), { recursive: true, force: true })
+
+  log("  + notify/ (styles, provider React, push, serveur)")
+  log("")
+  log("  Notify — à faire :")
+  log('    1. Importer "./aura/notify/notify.css" après aura.css')
+  log("    2. Envelopper l'app dans <NotifyProvider>")
+  log("    3. Service worker : voir notify/sw/push-sw.js")
+  log(`    4. Lire ${path.relative(process.cwd(), path.join(dest, "notify", "README.md"))}`)
+  log("")
+}
+
 async function init(flags) {
   const target = path.resolve(flags.dir ?? process.cwd())
   const stack = flags.stack ?? "vite"
@@ -159,6 +175,9 @@ async function init(flags) {
   if (flags.auth) {
     await installAuth(dest)
   }
+  if (flags.notify) {
+    await installNotify(dest)
+  }
 
   const usage = `# Aura dans ${name}
 
@@ -167,6 +186,7 @@ async function init(flags) {
 \`\`\`ts
 import "./aura/aura.css"
 ${flags.auth ? 'import "./aura/auth/auth.css"' : ""}
+${flags.notify ? 'import "./aura/notify/notify.css"' : ""}
 \`\`\`
 
 ## 2. Envelopper l'application
@@ -203,6 +223,19 @@ ${
 - Serveur : \`src/aura/auth/server/\` (Express ou Web standard).
 - Variables : \`AUTH_SECRET\` obligatoire, \`AUTH_APP_NAME\` optionnel.
 - Détails : \`src/aura/auth/README.md\`.
+`
+    : ""
+}
+${
+  flags.notify
+    ? `
+## 5. Notifications
+
+- Styles : \`instrument\` (Android), \`banner\` (iOS), \`card\`, ou \`auto\`.
+- React : \`NotifyProvider\` + \`useNotify\`.
+- Push : \`createPushClient\` + \`src/aura/notify/sw/push-sw.js\`.
+- Serveur : \`src/aura/notify/server/\` + clés VAPID.
+- Détails : \`src/aura/notify/README.md\`.
 `
     : ""
 }
@@ -260,8 +293,13 @@ async function add(flags) {
   if (names.includes("auth")) {
     await installAuth(dest)
   }
+  if (names.includes("notify")) {
+    await installNotify(dest)
+  }
 
-  const components = names.filter((name) => name !== "auth")
+  const components = names.filter(
+    (name) => name !== "auth" && name !== "notify",
+  )
   if (components.length === 0) return
 
   await copyFile(path.join(KIT, "react", "cn.ts"), path.join(dest, "react", "cn.ts"))
@@ -289,7 +327,8 @@ async function list() {
   log(`    ${files.join(", ")}`)
   log("")
   log("  Modules :")
-  log("    auth  →  aura add auth")
+  log("    auth    →  aura add auth")
+  log("    notify  →  aura add notify")
   log("")
 }
 
@@ -314,9 +353,10 @@ function help() {
   Aura ${VERSION} — design system mobile-first
 
   Usage :
-    aura init   --dir <projet> [--stack vite|next|astro|nuxt|html] [--name "Mon App"] [--auth] [--force]
+    aura init   --dir <projet> [--stack vite|next|astro|nuxt|html] [--name "Mon App"] [--auth] [--notify] [--force]
     aura add    Button,Card,Sheet [--dir <projet>]
     aura add    auth [--dir <projet>]
+    aura add    notify [--dir <projet>]
     aura list
     aura theme  265 [--name violet]
 

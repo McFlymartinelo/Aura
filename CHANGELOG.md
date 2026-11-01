@@ -1,5 +1,18 @@
 # Journal
 
+## 0.3.0 — 2026-11-01
+
+- Nouveau module `kit/notify/` (opt-in) : notifications in-app et push Web.
+- Trois styles (`instrument`, `banner`, `card`) + `auto` (Android/iOS), pilotés
+  par `data-notify-style` et les tokens Aura.
+- `NotifyProvider`, `useNotify`, client push VAPID (`createPushClient`),
+  service worker prêt à importer.
+- Serveur : `createPushService` (abonnements, calendrier, `sendDue`), schéma
+  SQL, sender `web-push` optionnel.
+- CLI : `aura add notify`, `aura init --notify`, `aura list` affiche les
+  modules.
+- Tests : calendrier, déduplication, abonnements expirés, validation.
+
 ## 0.2.1 — 2026-11-01
 
 - Adaptateur `node:http` (`createNodeAuthHandler`) pour les serveurs sans

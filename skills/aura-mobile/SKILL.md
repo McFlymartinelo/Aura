@@ -98,7 +98,22 @@ node C:\Users\alex-\Workspace\Perso\Aura\cli\aura.mjs add auth --dir <projet>
 - Ne jamais activer `echoOtp` ni `exposeToken` en production.
 - Lire `Aura/kit/auth/README.md` avant de personnaliser.
 
-### 8. Vérifier
+### 8. Notifications (si l'app en a besoin)
+
+```bash
+node C:\Users\alex-\Workspace\Perso\Aura\cli\aura.mjs add notify --dir <projet>
+```
+
+- In-app : `NotifyProvider` + `useNotify`. Styles `auto` (Android →
+  instrument, iOS → banner), `instrument`, `banner`, `card`.
+- Push : `createPushClient`, `sw/push-sw.js` via
+  `workbox.importScripts: ["push-sw.js"]`.
+- iOS : le push exige la PWA installée (16.4+). Afficher les instructions.
+- Le push ne se teste pas dans le serveur de dev : utiliser un build de prod.
+- Le calendrier est calculé côté client, le serveur ne lit pas les données.
+- Lire `Aura/kit/notify/README.md`.
+
+### 9. Vérifier
 
 ```bash
 npm run build
@@ -123,6 +138,8 @@ Puis dans le navigateur :
 6. Ne pas livrer sans build vert.
 7. Si un composant manque, l'ajouter à `Aura/kit/react` **et** au projet.
 8. Auth : jamais de secret commité, jamais de code OTP loggé en production.
+9. Notifications : jamais de push sans consentement explicite, et tester sur un
+   vrai build (pas le serveur de dev).
 
 ## Références
 
@@ -131,3 +148,4 @@ Puis dans le navigateur :
 - `Aura/kit/aura.css` — tokens et classes.
 - `Aura/kit/pwa/README.md` — check-list PWA.
 - `Aura/kit/auth/README.md` — auth, API et sécurité.
+- `Aura/kit/notify/README.md` — notifications in-app et push.

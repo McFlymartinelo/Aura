@@ -68,7 +68,8 @@ Aura/
 │   ├── aura.css              # tokens + base + composants + utilitaires
 │   ├── react/                # 18 primitives accessibles
 │   ├── pwa/                  # manifest, head, icônes, offline, snippets
-│   └── auth/                 # serveur zéro-dép + écrans React
+│   ├── auth/                 # serveur zéro-dép + écrans React
+│   └── notify/               # notifications in-app + push VAPID
 ├── skills/aura-mobile/       # skill OpenCode / Claude Code
 ├── DESIGN.md                 # règles de direction artistique
 └── README.md
@@ -140,6 +141,7 @@ node cli/aura.mjs theme 265 --name violet
 | `Skeleton`, `EmptyState` | chargement et vide |
 | `PwaInstallCard` | installation PWA |
 | `AuthScreen`, `AuthProvider`, `useAuth` | module auth (opt-in) : inscription, OTP, session |
+| `NotifyProvider`, `useNotify` | module notify : styles instrument / bandeau / carte |
 | `motion.ts` | presets Motion + View Transitions |
 | `pwa.ts` | install, online, app badge, service worker |
 
@@ -270,6 +272,36 @@ Détails, contrat d'API et limites : `kit/auth/README.md`.
 
 ---
 
+## Notifications (module opt-in)
+
+`kit/notify/` couvre l'in-app et le push Web, avec un style paramétrable :
+
+```bash
+node cli/aura.mjs add notify --dir <projet>
+```
+
+- **Styles** : `instrument` (rail d'accent, Android), `banner` (pleine largeur,
+  iOS), `card`, ou `auto` (Android → instrument, iOS → banner).
+- **In-app** : `NotifyProvider` + `useNotify`, durée, actions, `tag` de
+  remplacement.
+- **Push** : client VAPID, service worker prêt (`sw/push-sw.js`), serveur
+  `createPushService` + `web-push`.
+- **Calendrier côté client** : les échéances sont calculées localement et
+  envoyées au serveur ; il ne lit pas les données métier.
+
+```tsx
+import "./aura/notify/notify.css"
+import { NotifyProvider, useNotify } from "./aura/notify/react"
+
+<NotifyProvider appName="Mon App" style="auto">
+  <App />
+</NotifyProvider>
+```
+
+Détails : `kit/notify/README.md`.
+
+---
+
 ## Motion
 
 - Courbes : `--aura-ease-out`, `--aura-ease-spring`.
@@ -303,6 +335,7 @@ Règle : **une** animation principale par écran. Le reste doit être silencieux
 - [ ] Une seule carte héro, un seul accent.
 - [ ] `prefers-reduced-motion` vérifié.
 - [ ] Auth (si utilisée) : `AUTH_SECRET` fort, mailer réel, cookie `Secure`.
+- [ ] Notifications (si utilisées) : VAPID configuré, test push réel, iOS PWA.
 - [ ] Lighthouse : PWA installable, contraste OK.
 - [ ] Build + typecheck + tests verts.
 

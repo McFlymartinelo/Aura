@@ -1,5 +1,11 @@
 # Journal
 
+## 0.3.1 — 2026-11-01
+
+- `PushClient.test` renvoie `sent`, `failed` et `skipped` pour distinguer un
+  envoi non confirmé d'un abonnement absent.
+- Le test push utilise « Notifications activées » au lieu de « App — test ».
+
 ## 0.3.0 — 2026-11-01
 
 - Nouveau module `kit/notify/` (opt-in) : notifications in-app et push Web.

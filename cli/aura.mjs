@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const KIT = path.join(ROOT, "kit")
-const VERSION = "0.3.0"
+const VERSION = "0.3.1"
 
 const STACKS = new Set(["vite", "next", "astro", "nuxt", "html"])
 

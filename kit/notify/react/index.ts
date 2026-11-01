@@ -20,4 +20,5 @@ export type {
   PushContext,
   PushEnableResult,
   PushStatus,
+  PushTestResult,
 } from "./push"

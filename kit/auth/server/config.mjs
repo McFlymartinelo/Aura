@@ -27,6 +27,7 @@ const DEFAULTS = Object.freeze({
   rateLimitWindowMs: 15 * 60 * 1000,
   rateLimitMax: 20,
   rateLimitOtpMax: 8,
+  registrationCode: null,
 })
 
 const MIN_SECRET_LENGTH = 32
@@ -122,6 +123,11 @@ export function resolveConfig(input = {}) {
     rateLimitOtpMax: number(input.rateLimitOtpMax, DEFAULTS.rateLimitOtpMax, {
       min: 1,
     }),
+    registrationCode: input.registrationCode
+      ? String(input.registrationCode)
+      : env("AUTH_REGISTRATION_CODE")
+        ? String(env("AUTH_REGISTRATION_CODE"))
+        : null,
   }
 
   if (isProduction && config.echoOtp) {

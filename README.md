@@ -250,7 +250,7 @@ node cli/aura.mjs init --dir <projet> --stack vite --auth
 
 - **Serveur** : zéro dépendance. `crypto.scrypt`, tokens HMAC, `node:sqlite`,
   mailer pluggable (Resend fourni, ou ta propre fonction). Adaptateurs
-  **Express** et **Web standard** (Next, Hono, Bun, Workers).
+  **Express**, **Web standard** (Next, Hono, Bun, Workers) et **node:http**.
 - **Écrans** : `AuthScreen` + `AuthProvider` + `useAuth`, dans le style Aura.
 - **Sécurité** : cookie `httpOnly` par défaut, révocation des sessions au
   changement de mot de passe, OTP hashé, rate limit, anti-énumération.

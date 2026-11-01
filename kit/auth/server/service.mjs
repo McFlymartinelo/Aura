@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto"
 import { AuthError } from "./errors.mjs"
 import { resolveConfig } from "./config.mjs"
 import { signJwt, verifyJwt } from "./tokens.mjs"
@@ -178,6 +179,20 @@ export function createAuthService(options = {}) {
   async function register(input = {}) {
     limit(input.ip)
 
+    if (config.registrationCode) {
+      const provided = Buffer.from(String(input.code ?? ""))
+      const expected = Buffer.from(config.registrationCode)
+      const valid =
+        provided.length === expected.length &&
+        provided.length > 0 &&
+        timingSafeEqual(provided, expected)
+      if (!valid) {
+        throw new AuthError(403, "Code d'inscription invalide", {
+          code: "invalid_signup_code",
+        })
+      }
+    }
+
     const emailError = validateEmail(input.email)
     if (emailError) throw new AuthError(400, emailError, { code: "invalid_email" })
 
@@ -233,6 +248,10 @@ export function createAuthService(options = {}) {
       }
       verified = 1
     }
+
+    // Si la vérification d'email est désactivée, le compte est utilisable
+    // immédiatement (sinon la connexion redemanderait un OTP à chaque fois).
+    if (!config.requireEmailVerification) verified = 1
 
     const displayName =
       displayCheck.value ??

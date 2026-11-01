@@ -55,6 +55,8 @@ export interface RegisterInput {
   displayName?: string
   username?: string
   emailToken?: string
+  /** Code d'inscription si le serveur en exige un. */
+  code?: string
 }
 
 export interface LoginInput {

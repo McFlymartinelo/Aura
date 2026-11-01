@@ -38,6 +38,7 @@ auth/
 │   ├── adapters/
 │   │   ├── sqlite.mjs        # node:sqlite (Node 22.5+)
 │   │   ├── express.mjs       # routeur Express
+│   │   ├── node.mjs          # serveur node:http natif
 │   │   └── web.mjs           # handler Request → Response (Next, Hono…)
 │   └── test/                 # tests node:test
 └── react/
@@ -145,6 +146,29 @@ persistante (Turso/libSQL, Postgres via un adaptateur maison) et un mailer HTTP.
 
 ---
 
+## Démarrage node:http (sans Express)
+
+```js
+import http from "node:http"
+import { createAuthService } from "./src/aura/auth/server/index.mjs"
+import { createSqliteDb } from "./src/aura/auth/server/adapters/sqlite.mjs"
+import { createNodeAuthHandler } from "./src/aura/auth/server/adapters/node.mjs"
+
+const db = createSqliteDb({ file: "./data/app.db" })
+const auth = createAuthService({ db, config: { appName: "Mon App" } })
+const handleAuth = createNodeAuthHandler(auth, { basePath: "/api/auth" })
+
+const server = http.createServer(async (req, res) => {
+  if (await handleAuth(req, res)) return
+  res.writeHead(404).end()
+})
+```
+
+`handleAuth` renvoie `true` quand la requête concerne `/api/auth`, `false`
+sinon : le reste du routeur continue normalement.
+
+---
+
 ## Client React
 
 ```tsx
@@ -219,6 +243,7 @@ httpOnly).
 | `echoOtp` | `false` | renvoyer `devOtp` (jamais en prod) |
 | `rateLimitMax` | 20 / 15 min | tentatives par IP |
 | `rateLimitOtpMax` | 8 / 15 min | envois d'OTP par IP |
+| `registrationCode` | `null` | code exigé pour créer un compte (serveur privé) |
 
 `resolveConfig` refuse un secret faible en production et interdit
 `echoOtp` / `exposeToken` implicites.
@@ -232,7 +257,7 @@ Toutes les réponses sont du JSON. Les erreurs suivent
 
 | Méthode | Route | Corps | Réponse |
 |---|---|---|---|
-| POST | `/register` | `email, password, displayName?, username?, emailToken?` | `{ user }` ou `{ needsOtp, otpToken, emailMasked }` |
+| POST | `/register` | `email, password, displayName?, username?, emailToken?, code?` | `{ user }` ou `{ needsOtp, otpToken, emailMasked }` |
 | POST | `/login` | `identifier, password` | `{ user }` ou `{ needsOtp, … }` |
 | POST | `/send-otp` | `email` | `{ ok, emailMasked }` |
 | POST | `/verify-otp` | `otpToken, code` ou `email, code` | `{ user }` ou `{ needsProfile, emailToken }` |
@@ -264,6 +289,8 @@ Codes d'erreur utiles : `invalid_credentials`, `email_taken`,
   compare un hash factice quand le compte n'existe pas ; `forgot-password`
   répond `{ ok: true }` même pour une adresse inconnue.
 - **Rate limit** : 20 tentatives / 15 min et 8 OTP / 15 min par IP.
+- **Inscriptions** : `registrationCode` permet de fermer la création de comptes
+  à un serveur privé (le code est comparé à temps constant).
 - **IP de confiance** : `req.ip` (Express) et `x-forwarded-for` (Web) ne sont
   fiables que derrière un proxy maîtrisé. Configure `trust proxy` côté Express,
   sinon un client peut changer d'IP à chaque requête.

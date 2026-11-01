@@ -1,5 +1,14 @@
 # Journal
 
+## 0.2.1 — 2026-11-01
+
+- Adaptateur `node:http` (`createNodeAuthHandler`) pour les serveurs sans
+  Express.
+- `registrationCode` : ferme la création de comptes à un serveur privé.
+- Corrige les comptes créés sans vérification d'email : ils restaient non
+  vérifiés et redemandaient un OTP à la connexion.
+- Tests : adaptateur `node:http` et code d'inscription.
+
 ## 0.2.0 — 2026-11-01
 
 - Nouveau module `kit/auth/` (opt-in) : inscription, connexion, code OTP par

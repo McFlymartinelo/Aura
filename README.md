@@ -295,3 +295,10 @@ C'est la référence de ce à quoi doit ressembler une app Aura.
 - [ ] Composants de graphes (sparkline, barres).
 - [ ] Générateur de captures d'écran pour le manifest.
 - [ ] Variante React Native / NativeWind.
+
+---
+
+## Licence
+
+MIT — voir [LICENSE](./LICENSE). Réutilisation libre, y compris commerciale,
+avec conservation de la mention de copyright.

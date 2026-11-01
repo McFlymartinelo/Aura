@@ -2,6 +2,11 @@
   "name": "aura-design-system",
   "version": "0.1.2",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/McFlymartinelo/Aura.git"
+  },
   "type": "module",
   "description": "Design system mobile-first réutilisable : tokens, composants React, motion, PWA.",
   "bin": {

@@ -1,0 +1,17 @@
+# Dépendances (le kit n'en a aucune, mais garde-fou)
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Sorties éventuelles
+dist/
+dev-dist/
+*.local

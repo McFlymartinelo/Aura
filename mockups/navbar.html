@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Drivly — propositions barre de navigation</title>
+    <style>
+      :root {
+        --bg: oklch(97.3% 0.006 235);
+        --canvas: oklch(91.5% 0.012 235);
+        --surface: oklch(99.5% 0.002 235);
+        --surface-2: oklch(95.3% 0.008 235);
+        --ink: oklch(20.5% 0.018 245);
+        --ink-2: oklch(42% 0.016 245);
+        --ink-3: oklch(52% 0.014 245);
+        --line: oklch(89.6% 0.008 240);
+        --line-strong: oklch(80% 0.014 240);
+        --accent: oklch(72% 0.145 195);
+        --accent-solid: oklch(54% 0.135 195);
+        --accent-soft: oklch(95.5% 0.035 195);
+        --on-accent: oklch(99% 0.005 195);
+        --warn: oklch(66% 0.16 62);
+        --ease-spring: cubic-bezier(0.34, 1.46, 0.64, 1);
+        --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+        --font-sans: "Inter Tight", ui-sans-serif, system-ui, -apple-system,
+          "Segoe UI", sans-serif;
+        --font-display: "Bricolage Grotesque", "Inter Tight", ui-sans-serif,
+          system-ui, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        padding: 40px 24px 72px;
+        background:
+          radial-gradient(90% 50% at 50% -10%, oklch(72% 0.145 195 / 0.1), transparent 70%),
+          var(--canvas);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      header.page { max-width: 1080px; margin: 0 auto 32px; }
+      .eyebrow {
+        margin: 0 0 8px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      h1 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(26px, 4vw, 36px);
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+      }
+      .lede {
+        margin: 10px 0 0;
+        max-width: 62ch;
+        font-size: 14.5px;
+        line-height: 1.55;
+        color: var(--ink-2);
+        text-wrap: pretty;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+
+      .card {
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        background: var(--surface);
+        box-shadow:
+          0 2px 6px oklch(22% 0.02 250 / 0.05),
+          0 18px 40px -24px oklch(22% 0.02 250 / 0.3);
+      }
+      .card[data-pick] {
+        border-color: oklch(72% 0.145 195 / 0.55);
+        box-shadow:
+          0 2px 6px oklch(22% 0.02 250 / 0.05),
+          0 18px 40px -24px oklch(54% 0.135 195 / 0.55);
+      }
+      .card h2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 2px;
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 680;
+        letter-spacing: -0.02em;
+      }
+      .tag {
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-solid);
+        font-family: var(--font-sans);
+        font-size: 9.5px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .tag.plain { background: var(--surface-2); color: var(--ink-3); }
+      .card .desc {
+        margin: 0 0 14px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--ink-3);
+        text-wrap: pretty;
+      }
+      .card ul {
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 5px;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--ink-2);
+      }
+      .card li { display: flex; gap: 7px; }
+      .card li::before {
+        content: "";
+        flex: none;
+        width: 5px;
+        height: 5px;
+        margin-top: 6px;
+        border-radius: 50%;
+        background: var(--accent-solid);
+        opacity: 0.55;
+      }
+
+      /* --- Cadre téléphone ------------------------------------------------ */
+      .phone {
+        position: relative;
+        width: 100%;
+        max-width: 344px;
+        margin: 0 auto;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        background: var(--bg);
+      }
+      .screen {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 214px;
+        padding: 12px 12px 0;
+      }
+      .hero-mini {
+        flex: none;
+        padding: 12px 14px 13px;
+        border-radius: 18px;
+        color: white;
+        background:
+          radial-gradient(120% 150% at 100% 0%, oklch(72% 0.145 195 / 0.6), transparent 58%),
+          linear-gradient(145deg, oklch(25% 0.03 250), oklch(15% 0.022 255));
+        box-shadow: 0 14px 30px -18px oklch(54% 0.135 195 / 0.55);
+      }
+      .hero-mini p { margin: 0; }
+      .hero-mini .k {
+        font-size: 8.5px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: oklch(100% 0 0 / 0.6);
+      }
+      .hero-mini .v {
+        margin-top: 6px;
+        font-family: var(--font-display);
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+      .hero-mini .m {
+        margin-top: 6px;
+        font-size: 10px;
+        color: oklch(100% 0 0 / 0.66);
+      }
+      .filler {
+        flex: 1;
+        border-radius: 14px;
+        background: linear-gradient(
+          to bottom,
+          var(--surface-2),
+          color-mix(in oklab, var(--surface-2) 40%, transparent)
+        );
+        opacity: 0.7;
+      }
+
+      /* --- Icone commune -------------------------------------------------- */
+      .ic { width: 19px; height: 19px; stroke-width: 1.9; }
+      .ic.fill { stroke-width: 2.4; }
+
+      /* --- Variante A : capsule glissante -------------------------------- */
+      .navA {
+        padding: 8px 10px 12px;
+        background: linear-gradient(to top, var(--bg) 45%, transparent);
+      }
+      .navA .bar {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 6px 7px 5px;
+        border: 1px solid oklch(100% 0 0 / 0.7);
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--bg) 74%, transparent);
+        box-shadow: 0 14px 34px -18px oklch(54% 0.135 195 / 0.5);
+        -webkit-backdrop-filter: blur(18px) saturate(1.6);
+        backdrop-filter: blur(18px) saturate(1.6);
+      }
+      .navA .capsule {
+        position: absolute;
+        left: 7px;
+        bottom: 5px;
+        width: calc((100% - 14px) / 5);
+        height: 42px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        box-shadow: inset 0 0 0 1px oklch(54% 0.135 195 / 0.1);
+      }
+      .navA .tab {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        font-size: 9.5px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--ink-3);
+      }
+      .navA .tab.on { color: var(--accent-solid); }
+      .navA .tab .lbl { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .navA .cta {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        flex: 1;
+        place-items: center;
+        gap: 2px;
+        font-size: 9.5px;
+        font-weight: 700;
+        color: var(--accent-solid);
+      }
+      .navA .cta .plus {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        margin-top: -13px;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--accent-solid);
+        color: var(--on-accent);
+        box-shadow: 0 12px 22px -10px oklch(54% 0.135 195 / 0.85);
+      }
+
+      /* --- Variante B : rail instrument ----------------------------------- */
+      .navB { border-top: 1px solid var(--line); background: var(--surface); }
+      .navB .bar {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        padding: 5px 8px 8px;
+      }
+      .navB .tab {
+        position: relative;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding-top: 5px;
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--ink-3);
+      }
+      .navB .tab::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        width: 18px;
+        height: 3px;
+        border-radius: 999px;
+        background: transparent;
+      }
+      .navB .tab.on { color: var(--ink); font-weight: 700; }
+      .navB .tab.on::before { background: var(--accent-solid); }
+      .navB .cta {
+        display: grid;
+        flex: 1;
+        place-items: center;
+        gap: 3px;
+        font-size: 9.5px;
+        font-weight: 700;
+        color: var(--accent-solid);
+      }
+      .navB .cta .plus {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border-radius: 11px;
+        background: var(--accent-solid);
+        color: var(--on-accent);
+        box-shadow: 0 8px 16px -8px oklch(54% 0.135 195 / 0.8);
+      }
+
+      /* --- Variante C : épurée, sans conteneur ---------------------------- */
+      .navC {
+        padding: 10px 6px 14px;
+        background: linear-gradient(to top, var(--bg) 55%, transparent);
+      }
+      .navC .bar {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-around;
+        padding: 0 4px;
+      }
+      .navC .tab {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        color: var(--ink-3);
+      }
+      .navC .tab .pill {
+        display: grid;
+        width: 42px;
+        height: 27px;
+        place-items: center;
+        border-radius: 999px;
+        background: transparent;
+        transition: background 200ms var(--ease-out);
+      }
+      .navC .tab.on { color: var(--accent-solid); }
+      .navC .tab.on .pill { background: var(--accent-soft); }
+      .navC .tab .lbl {
+        font-size: 9.5px;
+        font-weight: 650;
+        opacity: 0;
+      }
+      .navC .tab.on .lbl { opacity: 1; }
+      .navC .cta {
+        display: grid;
+        flex: 1;
+        place-items: center;
+      }
+      .navC .cta .plus {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        border-radius: 14px;
+        background: var(--accent-solid);
+        color: var(--on-accent);
+        box-shadow: 0 12px 24px -12px oklch(54% 0.135 195 / 0.9);
+      }
+      .navC .cta .lbl {
+        margin-top: 3px;
+        font-size: 9.5px;
+        font-weight: 650;
+        color: var(--accent-solid);
+      }
+      .navC .cta { flex-direction: column; gap: 0; }
+
+      footer.page {
+        max-width: 1080px;
+        margin: 34px auto 0;
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--ink-3);
+      }
+      footer.page strong { color: var(--ink-2); font-weight: 650; }
+      code {
+        padding: 1px 5px;
+        border-radius: 5px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        font-size: 11.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page">
+      <p class="eyebrow">Drivly · composant</p>
+      <h1>Trois directions pour la barre du bas</h1>
+      <p class="lede">
+        Même contenu, même hiérarchie, trois niveaux d'expression. A conserve
+        l'interaction actuelle (la lumière suit le doigt). B assume le côté
+        instrument. C va vers le plus silencieux.
+      </p>
+    </header>
+
+    <div class="grid">
+      <!-- A -->
+      <article class="card" data-pick>
+        <h2>A · Capsule glissante <span class="tag">Recommandé</span></h2>
+        <p class="desc">
+          L'indicateur devient une capsule pleine qui glisse sous l'onglet actif.
+          Le bouton central remonte au-dessus de la barre.
+        </p>
+
+        <div class="phone">
+          <div class="screen">
+            <div class="hero-mini">
+              <p class="k">Novembre 2025</p>
+              <p class="v">98,17 €</p>
+              <p class="m">1 080 km · 5,43 L/100 km</p>
+            </div>
+            <div class="filler"></div>
+          </div>
+          <nav class="navA">
+            <div class="bar">
+              <div class="capsule"></div>
+              <div class="tab on">
+                <svg class="ic fill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                <span class="lbl">Historique</span>
+              </div>
+              <div class="tab">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                <span class="lbl">Rapports</span>
+              </div>
+              <div class="cta">
+                <span class="plus">
+                  <svg class="ic fill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+                <span class="lbl" style="font-size:9.5px">Ajouter</span>
+              </div>
+              <div class="tab">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>
+                <span class="lbl">Rappels</span>
+              </div>
+              <div class="tab">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                <span class="lbl">Plus</span>
+              </div>
+            </div>
+          </nav>
+        </div>
+
+        <ul>
+          <li>Garde l'identité Drivly : le geste de glissement reste.</li>
+          <li>Un seul effet fort : la capsule. Plus d'anneau lumineux flottant.</li>
+          <li>Contraste actif/inactif lisible même en plein soleil.</li>
+        </ul>
+      </article>
+
+      <!-- B -->
+      <article class="card">
+        <h2>B · Rail instrument <span class="tag plain">Dense</span></h2>
+        <p class="desc">
+          Plus de verre ni de pastille : une barre opaque, un filet, et un
+          indicateur d'onglet qui glisse au-dessus de l'icône.
+        </p>
+
+        <div class="phone">
+          <div class="screen">
+            <div class="hero-mini">
+              <p class="k">Novembre 2025</p>
+              <p class="v">98,17 €</p>
+              <p class="m">1 080 km · 5,43 L/100 km</p>
+            </div>
+            <div class="filler"></div>
+          </div>
+          <nav class="navB">
+            <div class="bar">
+              <div class="tab on">
+                <svg class="ic fill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                <span class="lbl">Historique</span>
+              </div>
+              <div class="tab">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                <span class="lbl">Rapports</span>
+              </div>
+              <div class="cta">
+                <span class="plus">
+                  <svg class="ic fill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+                <span class="lbl" style="font-size:9.5px">Ajouter</span>
+              </div>
+              <div class="tab">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>
+                <span class="lbl">Rappels</span>
+              </div>
+              <div class="tab">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                <span class="lbl">Plus</span>
+              </div>
+            </div>
+          </nav>
+        </div>
+
+        <ul>
+          <li>Le plus lisible et le plus rapide à parcourir.</li>
+          <li>Zéro flou, zéro transparence : cohérent avec un outil de mesure.</li>
+          <li>Moins « démo » : assume le côté carnet de bord technique.</li>
+        </ul>
+      </article>
+
+      <!-- C -->
+      <article class="card">
+        <h2>C · Silencieuse <span class="tag plain">Minimale</span></h2>
+        <p class="desc">
+          Aucun conteneur. Les icônes flottent sur le fond, seul l'onglet actif
+          reçoit une pastille et son libellé.
+        </p>
+
+        <div class="phone">
+          <div class="screen">
+            <div class="hero-mini">
+              <p class="k">Novembre 2025</p>
+              <p class="v">98,17 €</p>
+              <p class="m">1 080 km · 5,43 L/100 km</p>
+            </div>
+            <div class="filler"></div>
+          </div>
+          <nav class="navC">
+            <div class="bar">
+              <div class="tab on">
+                <span class="pill">
+                  <svg class="ic fill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                </span>
+                <span class="lbl">Historique</span>
+              </div>
+              <div class="tab">
+                <span class="pill">
+                  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                </span>
+                <span class="lbl">Rapports</span>
+              </div>
+              <div class="cta">
+                <span class="plus">
+                  <svg class="ic fill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+                <span class="lbl">Ajouter</span>
+              </div>
+              <div class="tab">
+                <span class="pill">
+                  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>
+                </span>
+                <span class="lbl">Rappels</span>
+              </div>
+              <div class="tab">
+                <span class="pill">
+                  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                </span>
+                <span class="lbl">Plus</span>
+              </div>
+            </div>
+          </nav>
+        </div>
+
+        <ul>
+          <li>Laisse toute la place au contenu et à la carte héro.</li>
+          <li>Très proche des conventions iOS/Android récentes.</li>
+          <li>Le libellé qui apparaît/disparaît demande une transition soignée.</li>
+        </ul>
+      </article>
+    </div>
+
+    <footer class="page">
+      <p>
+        <strong>Dans les trois cas</strong> : cibles ≥ 44 px, safe area
+        <code>env(safe-area-inset-bottom)</code>, navigation clavier ←/→ et
+        pastille de rappel en retard conservées. Le halo lumineux actuel
+        disparaît : il ajoutait un troisième effet dans 64 px de hauteur.
+      </p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+﻿{
+  "name": "aura-design-system",
+  "version": "0.1.2",
+  "private": true,
+  "type": "module",
+  "description": "Design system mobile-first réutilisable : tokens, composants React, motion, PWA.",
+  "bin": {
+    "aura": "./cli/aura.mjs"
+  },
+  "scripts": {
+    "aura": "node cli/aura.mjs",
+    "list": "node cli/aura.mjs list"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

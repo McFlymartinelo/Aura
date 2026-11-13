@@ -5,7 +5,7 @@ Notifications in-app et push Web, avec un style paramétrable.
 | Couche | Contenu | Dépendances |
 |---|---|---|
 | `notify.css` | styles `instrument`, `banner`, `card` | aucune |
-| `react/` | `NotifyProvider`, `useNotify`, client push VAPID | React |
+| `react/` | `NotifyProvider`, `useNotify`, `usePush`, `PushCard`, client push VAPID | React |
 | `server/` | abonnements, calendrier, envoi | `web-push` (optionnel) |
 | `sw/` | service worker push | aucune |
 

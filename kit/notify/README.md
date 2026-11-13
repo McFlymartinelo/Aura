@@ -124,18 +124,56 @@ const push = createPushClient({
   getHeaders: () => ({ Authorization: `Bearer ${token}` }),
 })
 
+const status = await push.status()
 const result = await push.enable()
-// { ok: false, reason: "ios-install" | "vapid" | "denied" | ... }
-
-await push.test()
-await push.disable()
 ```
 
-Le client expose `status()`, `enable()`, `disable()`, `sync()`, `test()`,
-`showLocal()`. Il détecte iOS et le mode standalone.
+`status.reason` indique **pourquoi** le push est disponible ou non :
 
-**iOS** : le push n'existe que dans la PWA installée (iOS 16.4+). Si
-`status.needsInstall`, afficher : « Partager → Sur l'écran d'accueil ».
+| `reason` | Cause | À afficher |
+|---|---|---|
+| `ok` | tout est prêt | bouton Activer |
+| `ios-install` | Safari iPhone hors PWA | Partager → Sur l’écran d’accueil |
+| `ios-outdated` | iOS < 16.4 | mise à jour iOS |
+| `insecure` | HTTP (IP locale, pas HTTPS) | ouvrir en https:// |
+| `unsupported` | navigateur sans Push/Notification | changer de navigateur |
+
+`enable()` renvoie `{ ok, reason }` avec les mêmes valeurs, plus `vapid`,
+`denied` et `error`. Pour les messages prêts à l’emploi :
+
+```ts
+import { describePushContext, pushContextSummary } from "./aura/notify/react"
+
+describePushContext(status) // message actionnable, ou null si tout va bien
+pushContextSummary(status)  // « iOS 18.6 · écran d’accueil · HTTPS · Push API ok »
+```
+
+#### React
+
+`usePush` garde l’état et les actions ; `PushCard` fournit la carte de
+réglages complète (statut, diagnostic, Activer / Tester / Désactiver).
+
+```tsx
+import { PushCard } from "./aura/notify/react"
+
+<PushCard
+  appName="Mon App"
+  apiBase="/api"
+  getHeaders={() => ({ Authorization: `Bearer ${token}` })}
+  onEnabled={() => console.log("push activé")}
+/>
+```
+
+```tsx
+const push = usePush({ apiBase: "/api" })
+await push.enable()
+await push.test()
+push.hint    // explication si indisponible
+push.summary // ligne de diagnostic
+```
+
+`usePush` crée le client une seule fois : `apiBase`, `swUrl` et les chemins
+sont lus au montage. `getHeaders` est appelé à chaque requête.
 
 ### 3. Serveur
 
@@ -180,7 +218,51 @@ setInterval(() => push.sendDue().catch(console.error), 5 * 60_000)
 `sendDue()` envoie les éléments dont `at <= maintenant`, marque `sent_at`,
 supprime les abonnements expirés (404/410/403) et abandonne après 5 échecs.
 
+Chaque erreur d’envoi contient `host`, `status` et `body` (le JSON du service
+push). Exemple Apple : `400 · web.push.apple.com · {"reason":"BadWebPushTopic"}`.
+
+> **Piège Apple** : `web.push.apple.com` renvoie `400 BadWebPushTopic` dès que
+> l’en-tête `Topic` dépasse **16 caractères** (le RFC 8030 en autorise 32).
+> `createWebPushSender` ne l’envoie jamais à Apple ; `pushSendOptions()` expose
+> la règle pour un sender maison. Ne pas réintroduire de `topic` global.
+
 Le schéma SQL est dans `notify/server/schema.sql` (tables préfixées `aura_`).
+
+---
+
+## iOS — app fermée, verrouillée, tuée
+
+Le push fonctionne **app fermée** sur iOS 16.4+ : APNs réveille le service
+worker, qui affiche la notification. Quelques règles :
+
+- l’app doit être **installée sur l’écran d’accueil** (pas un onglet Safari) ;
+- la permission doit rester sur **Autoriser** (Réglages → Notifications → app) ;
+- vérifier que **Résumé des notifications** est désactivé pour l’app, sinon la
+  notification est regroupée et arrive plus tard ;
+- après un redémarrage ou une fermeture forcée, **iOS 17** a des bugs connus où
+  les push cessent jusqu’à la réouverture de l’app. iOS 18 corrige la majorité
+  des cas. Sur une cible iOS 17.x, conseiller la mise à jour.
+
+Protocole de test :
+
+1. fermer l’app (glisser vers le haut dans le sélecteur) ou verrouiller le
+   téléphone ;
+2. déclencher `push.test()` depuis le serveur ou un autre appareil ;
+3. la notification doit apparaître sur l’écran verrouillé.
+
+Ne pas confondre les trois canaux :
+
+| Canal | App ouverte | App fermée |
+|---|---|---|
+| In-app (`useNotify`) | oui | non |
+| Rappel local calculé côté client | oui | non |
+| Push serveur (`sendDue` / cron) | oui | **oui** |
+
+## Mise à jour du front
+
+Une PWA qui reste sur une ancienne version ne verra jamais les corrections.
+Voir `kit/pwa/README.md` : `Cache-Control: no-cache` sur `index.html`,
+`manifest` et `sw.js`, plus `registerServiceWorker({ autoReload: true })`.
 
 ---
 
@@ -205,9 +287,12 @@ Pour rester sans dépendance, passer un `sender` maison à `createPushService`.
 
 ## Limites
 
-- Pas de push sur iOS hors PWA installée.
-- Pas de notification si l'app n'a pas été ouverte récemment : le calendrier
-  est calculé côté client (local-first). Les échéances déjà envoyées restent
-  stockées côté serveur.
+- Pas de push sur iOS hors PWA installée (limite Apple, iOS 16.4+).
+- Le calendrier est calculé côté client (local-first) : les échéances ne sont
+  planifiées côté serveur qu’après un `syncSchedule()`. Une échéance déjà
+  stockée part même si l’app est fermée ; une échéance qui n’a jamais été
+  synchronisée ne partira pas.
+- iOS 17 : bugs de livraison après redémarrage / fermeture forcée ; iOS 18 est
+  plus fiable. Toujours tester sur un vrai build installé.
 - Les actions de notification sont limitées à 2 sur Android, 0 sur iOS.
-- Le service worker de dev n'inclut pas le push : tester en production.
+- Le service worker de dev n’inclut pas le push : tester en production.

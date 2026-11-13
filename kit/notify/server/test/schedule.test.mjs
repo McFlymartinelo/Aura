@@ -16,6 +16,12 @@ function setup() {
         error.statusCode = 410
         throw error
       }
+      if (subscription.endpoint.includes("bad")) {
+        const error = new Error("Received unexpected response code")
+        error.statusCode = 400
+        error.body = '{"reason":"BadWebPushTopic"}'
+        throw error
+      }
       sent.push({ subscription, payload })
     },
   }
@@ -86,6 +92,21 @@ test("push : abonnement expiré supprimé après un 410", async () => {
   assert.equal(result.sent, 0)
   assert.equal(result.failed, 1)
   assert.equal((await push.subscriptions(1)).length, 0)
+})
+
+test("push : un 400 expose l'hôte et le corps Apple sans supprimer l'abonnement", async () => {
+  const { push } = setup()
+  const endpoint = "https://web.push.apple.com/bad-endpoint"
+  await push.subscribe(1, { ...subscription, endpoint })
+
+  const result = await push.sendToUser(1, { title: "Test", body: "Test" })
+  assert.equal(result.sent, 0)
+  assert.equal(result.failed, 1)
+  assert.equal(result.errors[0].host, "web.push.apple.com")
+  assert.equal(result.errors[0].status, 400)
+  assert.match(result.errors[0].body, /BadWebPushTopic/)
+  // Un 400 signale une requête invalide de notre côté : on garde l'abonnement.
+  assert.equal((await push.subscriptions(1)).length, 1)
 })
 
 test("calendrier : validation", async () => {

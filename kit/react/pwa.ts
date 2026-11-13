@@ -96,15 +96,56 @@ export function useAppBadge(count?: number): void {
   }, [count])
 }
 
-/** Enregistre un service worker, avec un chemin configurable. */
+export interface RegisterServiceWorkerOptions {
+  /** Portée du service worker. Défaut : `/`. */
+  scope?: string
+  /** Recharge la page quand une nouvelle version prend le contrôle. Défaut : true. */
+  autoReload?: boolean
+  /** Force la vérification de mise à jour au démarrage. Défaut : true. */
+  checkUpdate?: boolean
+}
+
+/**
+ * Enregistre un service worker, avec un chemin configurable.
+ *
+ * Par défaut : `updateViaCache: "none"` (le navigateur ne sert pas l'ancien
+ * `sw.js` depuis le cache HTTP), vérification de mise à jour au démarrage, et
+ * rechargement unique quand une nouvelle version prend le contrôle. Sur iOS
+ * (PWA installée), c'est ce qui fait arriver un déploiement sans que
+ * l'utilisateur vide le cache à la main.
+ *
+ * À appeler une seule fois par page (le listener `controllerchange` est
+ * ajouté à chaque appel).
+ */
 export async function registerServiceWorker(
   url = "/sw.js",
+  options: RegisterServiceWorkerOptions = {},
 ): Promise<ServiceWorkerRegistration | null> {
   if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
     return null
   }
+
+  const { scope = "/", autoReload = true, checkUpdate = true } = options
+
+  if (autoReload) {
+    const hadController = Boolean(navigator.serviceWorker.controller)
+    let reloading = false
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      // Premier installation : `clients.claim()` déclenche aussi l'événement,
+      // il ne faut pas recharger. Sur une mise à jour, on recharge une fois.
+      if (!hadController || reloading) return
+      reloading = true
+      window.location.reload()
+    })
+  }
+
   try {
-    return await navigator.serviceWorker.register(url)
+    const registration = await navigator.serviceWorker.register(url, {
+      scope,
+      updateViaCache: "none",
+    })
+    if (checkUpdate) registration.update().catch(() => {})
+    return registration
   } catch (error) {
     console.error("Service worker : enregistrement impossible", error)
     return null

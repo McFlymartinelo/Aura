@@ -8,6 +8,8 @@
  * via syncSchedule. Le serveur se contente de stocker et d'envoyer à l'heure.
  */
 
+import { endpointHost } from "./webpush.mjs"
+
 export class NotifyError extends Error {
   constructor(status, message, options = {}) {
     super(message)
@@ -136,8 +138,11 @@ export function createPushService({
         failed += 1
         errors.push({
           endpoint: String(sub.endpoint).slice(0, 40),
+          host: error?.host ?? endpointHost(sub.endpoint),
           status: error?.statusCode,
           message: error?.message,
+          // Corps renvoyé par le service push : { reason: "BadWebPushTopic" }…
+          body: typeof error?.body === "string" ? error.body.slice(0, 200) : undefined,
         })
         if ([403, 404, 410].includes(Number(error?.statusCode))) {
           await db.run(

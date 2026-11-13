@@ -142,6 +142,7 @@ node cli/aura.mjs theme 265 --name violet
 | `PwaInstallCard` | installation PWA |
 | `AuthScreen`, `AuthProvider`, `useAuth` | module auth (opt-in) : inscription, OTP, session |
 | `NotifyProvider`, `useNotify` | module notify : styles instrument / bandeau / carte |
+| `PushCard`, `usePush` | module notify : réglages push + diagnostic iOS / HTTPS |
 | `motion.ts` | presets Motion + View Transitions |
 | `pwa.ts` | install, online, app badge, service worker |
 
@@ -286,8 +287,16 @@ node cli/aura.mjs add notify --dir <projet>
   remplacement.
 - **Push** : client VAPID, service worker prêt (`sw/push-sw.js`), serveur
   `createPushService` + `web-push`.
+- **Réglages prêts** : `PushCard` (statut, Activer / Tester / Désactiver) et
+  `usePush` ; `describePushContext()` explique la cause exacte (Safari hors
+  PWA, iOS < 16.4, HTTP, navigateur non compatible).
 - **Calendrier côté client** : les échéances sont calculées localement et
   envoyées au serveur ; il ne lit pas les données métier.
+- **iOS app fermée** : le push passe par APNs (iOS 16.4+). Les notifications
+  in-app et les rappels locaux, eux, ne fonctionnent qu’app ouverte. Piège
+  Apple : `Topic` > 16 caractères → `400 BadWebPushTopic`, géré par le sender.
+- **Mises à jour** : voir `kit/pwa/README.md` — `no-cache` sur le HTML/`sw.js`
+  et `registerServiceWorker({ autoReload: true })`.
 
 ```tsx
 import "./aura/notify/notify.css"
@@ -296,6 +305,15 @@ import { NotifyProvider, useNotify } from "./aura/notify/react"
 <NotifyProvider appName="Mon App" style="auto">
   <App />
 </NotifyProvider>
+```
+
+```tsx
+import { PushCard } from "./aura/notify/react"
+
+<PushCard
+  appName="Mon App"
+  getHeaders={() => ({ Authorization: `Bearer ${token}` })}
+/>
 ```
 
 Détails : `kit/notify/README.md`.
@@ -335,7 +353,10 @@ Règle : **une** animation principale par écran. Le reste doit être silencieux
 - [ ] Une seule carte héro, un seul accent.
 - [ ] `prefers-reduced-motion` vérifié.
 - [ ] Auth (si utilisée) : `AUTH_SECRET` fort, mailer réel, cookie `Secure`.
-- [ ] Notifications (si utilisées) : VAPID configuré, test push réel, iOS PWA.
+- [ ] Notifications (si utilisées) : VAPID configuré, test push réel app
+      fermée, PWA iOS installée, diagnostic `PushCard` vert.
+- [ ] PWA : `no-cache` sur HTML/manifest/sw.js et mise à jour testée après
+      déploiement.
 - [ ] Lighthouse : PWA installable, contraste OK.
 - [ ] Build + typecheck + tests verts.
 

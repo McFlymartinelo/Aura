@@ -108,7 +108,14 @@ node C:\Users\alex-\Workspace\Perso\Aura\cli\aura.mjs add notify --dir <projet>
   instrument, iOS → banner), `instrument`, `banner`, `card`.
 - Push : `createPushClient`, `sw/push-sw.js` via
   `workbox.importScripts: ["push-sw.js"]`.
-- iOS : le push exige la PWA installée (16.4+). Afficher les instructions.
+- Réglages : `PushCard` + `usePush` (statut, diagnostic, Activer / Tester /
+  Désactiver). `describePushContext()` donne la cause exacte.
+- iOS : le push exige la PWA installée (16.4+). App fermée = OK via APNs ;
+  in-app et rappels locaux = app ouverte seulement.
+- Piège Apple : ne jamais envoyer un `Topic` > 16 caractères
+  (`400 BadWebPushTopic`) — `createWebPushSender` s'en charge.
+- Mises à jour : `registerServiceWorker()` (`autoReload`) + `no-cache` sur
+  HTML/manifest/sw.js (`kit/pwa/README.md`).
 - Le push ne se teste pas dans le serveur de dev : utiliser un build de prod.
 - Le calendrier est calculé côté client, le serveur ne lit pas les données.
 - Lire `Aura/kit/notify/README.md`.

@@ -75,7 +75,11 @@ export {
   useOnlineStatus,
   usePwaInstall,
 } from "./pwa"
-export type { BeforeInstallPromptEvent, PwaInstallState } from "./pwa"
+export type {
+  BeforeInstallPromptEvent,
+  PwaInstallState,
+  RegisterServiceWorkerOptions,
+} from "./pwa"
 
 export { PwaInstallCard } from "./PwaInstallCard"
 export type { PwaInstallCardProps } from "./PwaInstallCard"

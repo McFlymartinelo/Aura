@@ -1,5 +1,26 @@
 # Journal
 
+## 0.4.0 — 2026-11-13
+
+- **Push iOS fiabilisé** : diagnostic `PushReason` (`ok`, `ios-install`,
+  `ios-outdated`, `insecure`, `unsupported`), `describePushContext()` et
+  `pushContextSummary()` pour des messages actionnables.
+- Nouveau `usePush` (état + actions) et `PushCard` (carte de réglages prête :
+  statut, diagnostic, Activer / Tester / Désactiver).
+- Serveur : `topic` n’est jamais envoyé à Apple (limite de 16 caractères,
+  `400 BadWebPushTopic`) ; `pushSendOptions()`, `isAppleEndpoint()` et
+  `endpointHost()` exportés. Les erreurs d’envoi exposent `host`, `status` et
+  `body` pour diagnostiquer un rejet.
+- PWA : `registerServiceWorker()` accepte `scope`, `autoReload` et
+  `checkUpdate` (`updateViaCache: "none"`, rechargement unique sur
+  `controllerchange`).
+- Nouveau `kit/pwa/cache-headers.snippet.mjs` (`no-cache` sur HTML, manifest et
+  `sw.js`) + section « Cache et mises à jour ».
+- Docs : push app fermée sur iOS, protocole de test, canaux in-app / local /
+  serveur, piège Apple `Topic`.
+- Tests : options d’envoi Apple/FCM, détail d’erreur 400 conservant
+  l’abonnement.
+
 ## 0.3.1 — 2026-11-01
 
 - `PushClient.test` renvoie `sent`, `failed` et `skipped` pour distinguer un

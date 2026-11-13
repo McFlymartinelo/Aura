@@ -5,17 +5,37 @@
  *   GET  {apiBase}/push/vapid        -> { configured, publicKey }
  *   POST {apiBase}/push/subscribe    -> { ok }
  *   POST {apiBase}/push/unsubscribe  -> { ok }
- *   POST {apiBase}/push/test         -> { sent }
+ *   POST {apiBase}/push/test         -> { sent, failed, skipped }
  *
  * Sur iPhone, le push n'existe que dans la PWA installée (iOS 16.4+).
  */
 
+export type PushReason =
+  | "ok"
+  | "ios-install"
+  | "ios-outdated"
+  | "insecure"
+  | "unsupported"
+
+export interface IosVersion {
+  major: number
+  minor: number
+}
+
 export interface PushContext {
   ios: boolean
   standalone: boolean
+  /** Contexte sécurisé (HTTPS ou localhost). */
+  secure: boolean
+  iosVersion: IosVersion | null
+  /** Push + Notification disponibles dans un contexte sécurisé. */
   supported: boolean
+  hasPush: boolean
+  hasNotification: boolean
   needsInstall: boolean
   permission: NotificationPermission | "unsupported"
+  /** Cause exacte quand le push n'est pas disponible. */
+  reason: PushReason
 }
 
 export interface PushStatus extends PushContext {
@@ -27,8 +47,7 @@ export interface PushStatus extends PushContext {
 export interface PushEnableResult {
   ok: boolean
   reason?:
-    | "ios-install"
-    | "unsupported"
+    | PushReason
     | "vapid"
     | "denied"
     | "error"
@@ -97,6 +116,52 @@ function isStandalone(): boolean {
   )
 }
 
+function isSecure(): boolean {
+  if (typeof window === "undefined") return true
+  return window.isSecureContext !== false
+}
+
+function parseIosVersion(): IosVersion | null {
+  if (typeof navigator === "undefined") return null
+  const match = navigator.userAgent.match(/OS (\d+)[_.](\d+)/)
+  if (!match) return null
+  return { major: Number(match[1]), minor: Number(match[2]) }
+}
+
+export function formatIosVersion(version: IosVersion | null): string | null {
+  return version ? `${version.major}.${version.minor}` : null
+}
+
+/** Message actionnable expliquant pourquoi le push est indisponible. */
+export function describePushContext(context: PushContext): string | null {
+  const version = formatIosVersion(context.iosVersion)
+
+  switch (context.reason) {
+    case "insecure":
+      return "Les push exigent HTTPS : ouvre l’app depuis son adresse https:// (pas une IP locale)."
+    case "ios-install":
+      return "Sur iPhone, Safari ne gère pas les push. Ajoute l’app à l’écran d’accueil (Partager → Sur l’écran d’accueil), puis ouvre-la depuis l’icône."
+    case "ios-outdated":
+      return `Les push iPhone demandent iOS 16.4 ou plus${version ? ` (ton iPhone : iOS ${version})` : ""}. Mets à jour iOS dans Réglages → Général → Mise à jour logicielle.`
+    case "unsupported":
+      return context.ios
+        ? "L’app ne reçoit pas encore les push. Ferme-la complètement, rouvre-la depuis l’icône de l’écran d’accueil, puis réessaie."
+        : "Ce navigateur ne gère pas les push. Utilise Chrome, Edge, Firefox ou Safari à jour."
+    default:
+      return null
+  }
+}
+
+/** Ligne de diagnostic courte, à afficher dans les réglages. */
+export function pushContextSummary(context: PushContext): string {
+  return [
+    context.ios ? `iOS ${formatIosVersion(context.iosVersion) ?? "?"}` : "hors iOS",
+    context.standalone ? "écran d’accueil" : "navigateur",
+    context.secure ? "HTTPS" : "HTTP",
+    context.supported ? "Push API ok" : "Push API absente",
+  ].join(" · ")
+}
+
 function keyMatches(
   subscription: PushSubscription,
   publicKey: string,
@@ -123,23 +188,51 @@ export function createPushClient(
   const doFetch = options.fetch ?? globalThis.fetch
 
   function context(): PushContext {
-    const supported =
+    const hasPush =
       typeof navigator !== "undefined" &&
       "serviceWorker" in navigator &&
       typeof window !== "undefined" &&
       "PushManager" in window
+    const hasNotification =
+      typeof window !== "undefined" && "Notification" in window
     const permission: NotificationPermission | "unsupported" =
       typeof Notification === "undefined"
         ? "unsupported"
         : Notification.permission
     const ios = isIosDevice()
     const standalone = isStandalone()
+    const secure = isSecure()
+    const iosVersion = ios ? parseIosVersion() : null
+    const supported = secure && hasPush && hasNotification
+    const needsInstall = ios && !standalone
+
+    let reason: PushReason = "ok"
+    if (!secure) {
+      reason = "insecure"
+    } else if (ios && !standalone) {
+      reason = "ios-install"
+    } else if (
+      ios &&
+      iosVersion &&
+      (iosVersion.major < 16 ||
+        (iosVersion.major === 16 && iosVersion.minor < 4))
+    ) {
+      reason = "ios-outdated"
+    } else if (!supported) {
+      reason = "unsupported"
+    }
+
     return {
       ios,
       standalone,
+      secure,
+      iosVersion,
       supported,
-      needsInstall: ios && !standalone,
+      hasPush,
+      hasNotification,
+      needsInstall,
       permission,
+      reason,
     }
   }
 
@@ -224,8 +317,7 @@ export function createPushClient(
 
   async function enable(): Promise<PushEnableResult> {
     const ctx = context()
-    if (ctx.needsInstall) return { ok: false, reason: "ios-install" }
-    if (!ctx.supported) return { ok: false, reason: "unsupported" }
+    if (ctx.reason !== "ok") return { ok: false, reason: ctx.reason }
 
     try {
       const keys = await vapid()
@@ -250,7 +342,8 @@ export function createPushClient(
       return {
         ok: false,
         reason: "error",
-        error: error instanceof Error ? error.message : "Abonnement refusé.",
+        error:
+          error instanceof Error ? error.message : "Abonnement refusé.",
       }
     }
   }
@@ -276,8 +369,10 @@ export function createPushClient(
   async function sync(): Promise<void> {
     if (!isEnabled()) return
     const ctx = context()
-    if (ctx.needsInstall || !ctx.supported) return
-    if (ctx.permission !== "granted") {
+    // Sur iPhone hors PWA ou iOS trop ancien : on garde le réglage, rien à
+    // synchroniser. Il reprendra quand l’app sera ouverte au bon endroit.
+    if (ctx.reason === "ios-install" || ctx.reason === "ios-outdated") return
+    if (ctx.reason !== "ok" || ctx.permission !== "granted") {
       localStorage.removeItem(storageKey)
       return
     }
